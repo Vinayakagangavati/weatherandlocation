@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+      integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+      integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+      crossorigin=""
+    ></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Marcellus&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background: linear-gradient(
+          to right,
+          rgb(195, 209, 239),
+          rgb(240, 182, 192)
+        );
+        font-family: "Marcellus", serif;
+      }
+      #weathericon,
+      #currently,
+      .weathericon {
+        display: none;
+      }
+      .weathericon {
+        width: 100px;
+        object-fit: fill;
+        padding: 5px;
+        box-sizing: border-box;
+      }
+      #latitude,
+      #longitude,
+      #locwind,
+      #lochum {
+        text-align: center;
+      }
+      #view {
+        display: none;
+      }
+      #map {
+        margin: 5px 0px;
+        visibility: hidden;
+        height: 500px;
+        width: 90%;
+        border: 2px solid black;
+        border-radius: 10px;
+        left: 5%;
+        padding: 20px;
+        box-sizing: border-box;
+        background-color: blueviolet;
+      }
+      footer {
+        display: none;
+      }
+    </style>
+    <title>Document</title>
+  </head>
+
+  <body>
+    <div class="d-flex flex-column align-items-center mx-5 mt-5 mb-4">
+      <button onclick="getLocation()" class="btn btn-outline-primary">
+        Get Location and Weather
+      </button>
+      <p class="mt-1 text-center">CLICK THE ABOVE BUTTON TO GET THE DETAILS</p>
+    </div>
+    <div class="locdetails d-flex flex-column align-items-center">
+      <p id="locname"></p>
+      <p id="locdist"></p>
+      <p id="locform"></p>
+    </div>
+    <div class="d-flex flex-column align-items-center">
+      <p id="currently" class="fs-3 mt-3 align-self-start ms-5">Currently</p>
+      <img
+        src="https://cdn-icons-png.flaticon.com/256/3222/3222800.png"
+        id="weathericon"
+        width="150px"
+      />
+      <h1 id="loctemp"></h1>
+      <p id="locdes"></p>
+    </div>
+    <div class="d-flex justify-content-evenly mt-2">
+      <div>
+        <img
+          src="https://cdn-icons-png.flaticon.com/256/5206/5206671.png"
+          class="weathericon"
+        />
+        <p id="latitude"></p>
+      </div>
+      <div>
+        <img
+          src="https://cdn-icons-png.flaticon.com/256/11274/11274142.png"
+          class="weathericon"
+        />
+        <p id="longitude"></p>
+      </div>
+      <div>
+        <img
+          src="https://cdn-icons-png.flaticon.com/256/13843/13843805.png"
+          class="weathericon"
+        />
+        <p id="lochum"></p>
+      </div>
+      <div>
+        <img
+          src="https://cdn-icons-png.flaticon.com/256/12020/12020609.png"
+          class="weathericon"
+        />
+        <p id="locwind"></p>
+      </div>
+    </div>
+    <button
+      onclick="fun()"
+      id="view"
+      class="btn btn-outline-success position-relative start-50 translate-middle-x"
+    >
+      View in Map
+    </button>
+    <div id="map"></div>
+    <footer>
+      <h1>Created By :Vinayaka G</h1>
+      <p>Email:vinayakagvt22@gmail.com</p>
+    </footer>
+    <script>
+      function fun() {
+        document.getElementById("map").style.visibility = "visible";
+        document.getElementsByTagName("footer")[0].style.display = "block";
+      }
+      var map;
+      var marker;
+      var longitude;
+      var latitude;
+
+      function initializeMap(latitude, longitude) {
+        if (!map) {
+          map = L.map("map").setView([latitude, longitude], 15);
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 13,
+            minZoom: 1,
+          }).addTo(map);
+        } else {
+          map.setView([latitude, longitude], 15);
+        }
+
+        if (!marker) {
+          marker = L.marker([latitude, longitude]).addTo(map);
+        } else {
+          marker.setLatLng([latitude, longitude]);
+        }
+      }
+
+      async function fetchDataAndDisplayWeather(latitude, longitude) {
+        try {
+          const geoapifyResponse = await fetch(
+            `https://api.geoapify.com/v1/geocode/reverse?lat=${latitude}&lon=${longitude}&apiKey=e9e7c713500d41a7b339952532c717be`
+          );
+          const geoapifyData = await geoapifyResponse.json();
+
+          const locdata = geoapifyData.features[0].properties;
+          document.getElementById("locname").textContent =
+            "Location Name: " + locdata.city;
+          document.getElementById("locdist").textContent =
+            "Location District : " + locdata.state_district;
+          document.getElementById("locform").textContent = locdata.formatted;
+
+          const weatherResponse = await fetch(
+            `https://api.openweathermap.org/data/2.5/weather?q=${locdata.city}&appid=2a5e107f502c3e3c1a4292c5e2d2465b&units=metric`
+          );
+          const weatherData = await weatherResponse.json();
+          document.querySelector("#currently").style.display = "block";
+          document.querySelector("#weathericon").style.display = "block";
+          var weatherIcons = document.querySelectorAll(".weathericon");
+          weatherIcons.forEach(function (icon) {
+            icon.style.display = "block";
+          });
+          document.getElementById("loctemp").textContent =
+            weatherData.main.temp + "°C";
+          document.getElementById("latitude").innerHTML =
+            "Latitude: " + latitude.toFixed(3);
+          document.getElementById("longitude").innerHTML =
+            "Longitude " + longitude.toFixed(3);
+          document.getElementById("lochum").innerHTML =
+            "Humdity: " + weatherData.main.humidity + "°C";
+          document.getElementById("locwind").innerHTML =
+            "Wind Speed: " + weatherData.wind.speed + " Knots";
+          document.getElementById("locdes").innerHTML =
+            weatherData.weather[0].description.charAt(0).toUpperCase() +
+            weatherData.weather[0].description.slice(1).toLowerCase();
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+        document.querySelector("#view").style.display = "block";
+      }
+
+      function getLocation() {
+        navigator.geolocation.watchPosition(success, error);
+      }
+
+      function success(position) {
+        latitude = position.coords.latitude;
+        longitude = position.coords.longitude;
+        fetchDataAndDisplayWeather(latitude, longitude);
+        initializeMap(latitude, longitude);
+      }
+
+      function error() {
+        alert("Please allow the access to the location");
+      }
+    </script>
+  </body>
+</html>
