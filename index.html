@@ -125,11 +125,7 @@
         <p id="locwind"></p>
       </div>
     </div>
-    <button
-      onclick="fun()"
-      id="view"
-      class="btn btn-outline-success position-relative start-50 translate-middle-x"
-    >
+    <button onclick="fun()" id="view" class="btn btn-outline-success">
       View in Map
     </button>
     <div id="map"></div>
@@ -139,6 +135,7 @@
     </footer>
     <script>
       function fun() {
+        document.getElementById("view").style.display = "none";
         document.getElementById("map").style.visibility = "visible";
         document.getElementsByTagName("footer")[0].style.display = "block";
       }
